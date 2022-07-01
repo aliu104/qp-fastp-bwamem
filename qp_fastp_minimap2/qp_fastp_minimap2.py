@@ -37,6 +37,7 @@ COMBINED_CMD_SINGLE = (f'{FASTP_BASE} --stdout | {MINIMAP2_BASE} | '
                        '{out_dir}/%s')
 
 
+
 def get_dbs_list():
     folder = QC_REFERENCE_DB
 
