@@ -18,7 +18,7 @@ from functools import partial
 from qp_fastp_minimap2 import plugin
 from qp_fastp_minimap2.utils import plugin_details
 from qp_fastp_minimap2.qp_fastp_minimap2 import (
-    get_dbs_list, _generate_commands, fastp_minimap2_to_array, QC_REFERENCE_DB,
+    get_references_list, _generate_commands, fastp_minimap2_to_array, QC_REFERENCE,
     FASTP_CMD, COMBINED_CMD, FASTP_CMD_SINGLE, COMBINED_CMD_SINGLE)
 
 
@@ -30,9 +30,9 @@ class FastpMinimap2Tests(PluginTestCase):
         out_dir = mkdtemp()
         self.maxDiff = None
         self.out_dir = out_dir
-        self.dbs = get_dbs_list()
-        self.db_path = QC_REFERENCE_DB
-        self.params = {'reference': 'artifacts', 'threads': 2}
+        self.refs = get_references_list()
+        self.db_path = QC_REFERENCE
+        self.params = {'reference': 'genome', 'threads': 2}
         self._clean_up_files = []
         self._clean_up_files.append(out_dir)
 
@@ -45,17 +45,16 @@ class FastpMinimap2Tests(PluginTestCase):
                 else:
                     remove(fp)
 
-    def test_get_dbs_list(self):
-        """Tests to make sure that the get_dbs_list returns all the databases
-        that aren't human.mmi"""
-        dbs = get_dbs_list()
-        self.assertCountEqual(dbs, ['artifacts.mmi', 'empty.mmi'])
+    def test_get_references_list(self):
+        """Tests to make sure that the get_references_list returns just genome.fasta"""
+        refs = get_references_list()
+        self.assertCountEqual(refs, ['genome.fasta'])
 
     def test_generate_commands(self):
         """Makes sure that the _generate_commands function returns the correct commands"""
 
         # test parameters
-        params = {'database': 'artifacts', 'nprocs': 2,
+        params = {'reference': 'genome', 'nprocs': 2,
                   'out_dir': '/foo/bar/output'}
 
         fwd_seqs = ['sz1.fastq.gz', 'sc1.fastq.gz',
@@ -65,13 +64,13 @@ class FastpMinimap2Tests(PluginTestCase):
 
         # runs generate_commands with test params
         # testing for artifacts database with rev_seqs
-        obs = _generate_commands(fwd_seqs, rev_seqs, params['database'],
+        obs = _generate_commands(fwd_seqs, rev_seqs, params['reference'],
                                  params['nprocs'], params['out_dir'])
         # formats the command to generate "truths"
         cmd = COMBINED_CMD.format(**params)
 
         # command truths (formats the commands with the fastq sequences)
-        ecmds = [cmd % (f, r, f, r)
+        ecmds = [cmd % (f, r, f, r, f, r)
                  for f, r in zip_longest(fwd_seqs, rev_seqs)]
         # out_file truths (list of paths to output files in sorted order for fwd_seqs)
         eof = [(f'{params["out_dir"]}/{f}', 'raw_forward_seqs')
@@ -84,9 +83,9 @@ class FastpMinimap2Tests(PluginTestCase):
         self.assertCountEqual(obs[1], eof)
 
         # modifies test params
-        # testing for no database with rev_seqs
-        params['database'] = None
-        obs = _generate_commands(fwd_seqs, rev_seqs, params['database'],
+        # testing for no reference with rev_seqs
+        params['reference'] = None
+        obs = _generate_commands(fwd_seqs, rev_seqs, params['reference'],
                                  params['nprocs'], params['out_dir'])
         cmd = FASTP_CMD.format(**params)
         ecmds = [cmd % (f, r, f, r)
@@ -94,20 +93,20 @@ class FastpMinimap2Tests(PluginTestCase):
         self.assertCountEqual(obs[0], ecmds)
         self.assertCountEqual(obs[1], list(eof))
 
-        # tests the artifacts database with no rev_seqs
-        params['database'] = 'artifacts'
-        obs = _generate_commands(fwd_seqs, [], params['database'],
+        # tests the genome reference with no rev_seqs
+        params['reference'] = 'genome'
+        obs = _generate_commands(fwd_seqs, [], params['reference'],
                                  params['nprocs'], params['out_dir'])
         cmd = COMBINED_CMD_SINGLE.format(**params)
-        ecmds = [cmd % (f, f) for f in fwd_seqs]
+        ecmds = [cmd % (f, f, f) for f in fwd_seqs]
         eof = [(f'{params["out_dir"]}/{f}', 'raw_forward_seqs')
                for f in sorted(fwd_seqs)]
         self.assertCountEqual(obs[0], ecmds)
         self.assertCountEqual(obs[1], eof)
 
-        # tests no database with no rev_seqs
-        params['database'] = None
-        obs = _generate_commands(fwd_seqs, [], params['database'],
+        # tests no reference with no rev_seqs
+        params['reference'] = None
+        obs = _generate_commands(fwd_seqs, [], params['reference'],
                                  params['nprocs'], params['out_dir'])
         cmd = FASTP_CMD_SINGLE.format(**params)
         ecmds = [cmd % (f, f) for f in fwd_seqs]
@@ -210,7 +209,7 @@ class FastpMinimap2Tests(PluginTestCase):
             'set -e\n',
             f'cd {out_dir}\n',
             'source ~/.bash_profile; source activate qp-fastp-minimap2; '
-            f'export QC_REFERENCE_DB={QC_REFERENCE_DB}\n',
+            f'export QC_REFERENCE={QC_REFERENCE}\n',
             'date\n',
             'hostname\n',
             'echo ${PBS_JOBID} ${PBS_ARRAYID}\n',
@@ -235,7 +234,7 @@ class FastpMinimap2Tests(PluginTestCase):
             'set -e\n',
             f'cd {out_dir}\n',
             'source ~/.bash_profile; source activate qp-fastp-minimap2; '
-            f'export QC_REFERENCE_DB={QC_REFERENCE_DB}\n',
+            f'export QC_REFERENCE={QC_REFERENCE}\n',
             'date\n',
             'hostname\n',
             'echo $PBS_JOBID\n',
@@ -256,13 +255,13 @@ class FastpMinimap2Tests(PluginTestCase):
         exp_commands = [
             f'fastp -l 100 -i {apath}/S22205_S104_L001_R1_001.fastq.gz -w 2  '
             f'-I {apath}/S22205_S104_L001_R2_001.fastq.gz --stdout | '
-            f'minimap2 -ax sr -t 2 {QC_REFERENCE_DB}artifacts.mmi - -a  | '
+            f'minimap2 -ax sr -t 2 {QC_REFERENCE}artifacts.mmi - -a  | '
             'samtools fastq -@ 2 -f  12 -F 256 -1 '
             f'{out_dir}/S22205_S104_L001_R1_001.fastq.gz -2 '
             f'{out_dir}/S22205_S104_L001_R2_001.fastq.gz\n',
             f'fastp -l 100 -i {apath}/S22282_S102_L001_R1_001.fastq.gz -w 2  '
             f'-I {apath}/S22282_S102_L001_R2_001.fastq.gz --stdout | '
-            f'minimap2 -ax sr -t 2 {QC_REFERENCE_DB}artifacts.mmi - -a  | '
+            f'minimap2 -ax sr -t 2 {QC_REFERENCE}artifacts.mmi - -a  | '
             'samtools fastq -@ 2 -f  12 -F 256 -1 '
             f'{out_dir}/S22282_S102_L001_R1_001.fastq.gz -2 '
             f'{out_dir}/S22282_S102_L001_R2_001.fastq.gz']
@@ -356,7 +355,7 @@ class FastpMinimap2Tests(PluginTestCase):
             'set -e\n',
             f'cd {out_dir}\n',
             'source ~/.bash_profile; source activate qp-fastp-minimap2; '
-            f'export QC_REFERENCE_DB={QC_REFERENCE_DB}\n',
+            f'export QC_REFERENCE={QC_REFERENCE}\n',
             'date\n',
             'hostname\n',
             'echo ${PBS_JOBID} ${PBS_ARRAYID}\n',
@@ -381,7 +380,7 @@ class FastpMinimap2Tests(PluginTestCase):
             'set -e\n',
             f'cd {out_dir}\n',
             'source ~/.bash_profile; source activate qp-fastp-minimap2; '
-            f'export QC_REFERENCE_DB={QC_REFERENCE_DB}\n',
+            f'export QC_REFERENCE={QC_REFERENCE}\n',
             'date\n',
             'hostname\n',
             'echo $PBS_JOBID\n',
@@ -399,11 +398,11 @@ class FastpMinimap2Tests(PluginTestCase):
         apath = dirname(artifact_info['files']['raw_forward_seqs'][0])
         exp_commands = [
             f'fastp -l 100 -i {apath}/S22205_S104_L001_R1_001.fastq.gz -w 2  '
-            f'--stdout | minimap2 -ax sr -t 2 {QC_REFERENCE_DB}artifacts.mmi '
+            f'--stdout | minimap2 -ax sr -t 2 {QC_REFERENCE}artifacts.mmi '
             '- -a  | samtools fastq -@ 2 -f  4 -0 '
             f'{out_dir}/S22205_S104_L001_R1_001.fastq.gz\n',
             f'fastp -l 100 -i {apath}/S22282_S102_L001_R1_001.fastq.gz -w 2  '
-            f'--stdout | minimap2 -ax sr -t 2 {QC_REFERENCE_DB}artifacts.mmi '
+            f'--stdout | minimap2 -ax sr -t 2 {QC_REFERENCE}artifacts.mmi '
             '- -a  | samtools fastq -@ 2 -f  4 -0 '
             f'{out_dir}/S22282_S102_L001_R1_001.fastq.gz']
         self.assertEqual(commands, exp_commands)

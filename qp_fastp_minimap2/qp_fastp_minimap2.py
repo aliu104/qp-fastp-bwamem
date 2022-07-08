@@ -20,32 +20,33 @@ FINISH_MEMORY = '10g'
 FINISH_WALLTIME = '10:00:00'
 MAX_RUNNING = 8
 
-QC_REFERENCE_DB = environ["QC_REFERENCE_DB"]
+QC_REFERENCE = environ["QC_REFERENCE"]
 
 # Creates the template commands to run in the terminal
 FASTP_BASE = 'fastp -l 100 -i %s -w {nprocs} '
-MINIMAP2_BASE = 'minimap2 -ax sr -t {nprocs} {database} - -a '
+# MINIMAP2_BASE = 'minimap2 -ax sr -t {nprocs} {reference} - -a '
+BWAMEM_BASE = 'bwa mem -t {nprocs} {reference} '
 SAMTOOLS_BASE = 'samtools fastq -@ {nprocs} -f '
 
 FASTP_CMD = ' '.join([FASTP_BASE, '-I %s -o {out_dir}/%s -O {out_dir}/%s'])
 FASTP_CMD_SINGLE = (f'{FASTP_BASE} -o '
                     '{out_dir}/%s')
-COMBINED_CMD = (f'{FASTP_BASE} -I %s --stdout | {MINIMAP2_BASE} | '
+COMBINED_CMD = (f'{FASTP_BASE} -I %s --stdout | {BWAMEM_BASE} %s %s | '
                 f'{SAMTOOLS_BASE} 12 -F 256 -1 '
                 '{out_dir}/%s -2 {out_dir}/%s')
-COMBINED_CMD_SINGLE = (f'{FASTP_BASE} --stdout | {MINIMAP2_BASE} | '
+COMBINED_CMD_SINGLE = (f'{FASTP_BASE} --stdout | {BWAMEM_BASE} %s | '
                        f'{SAMTOOLS_BASE} 4 -0 '
                        '{out_dir}/%s')
+# TODO: change the formatting properly to account for the added %s in bwa mem commands
+
+def get_references_list():
+    folder = QC_REFERENCE
+
+    # skip human reference
+    return [basename(f) for f in glob(f'{folder}/*.fasta') if 'human' not in f]
 
 
-def get_dbs_list():
-    folder = QC_REFERENCE_DB
-
-    # skip human database
-    return [basename(f) for f in glob(f'{folder}/*.mmi') if 'human' not in f]
-
-
-def _generate_commands(fwd_seqs, rev_seqs, database, nprocs, out_dir):
+def _generate_commands(fwd_seqs, rev_seqs, reference, nprocs, out_dir):
     """Helper function to generate commands and facilite testing
     
     Parameters
@@ -54,8 +55,8 @@ def _generate_commands(fwd_seqs, rev_seqs, database, nprocs, out_dir):
         A list of file names for fastq.gz files
     rev_seqs : str[]
         Another list of file names for fastq.gz files
-    database : str
-        The name of the database to use
+    reference : str
+        The name of the reference to use
     nprocs : int
         Number of procs?
     out_dir : str
@@ -68,13 +69,13 @@ def _generate_commands(fwd_seqs, rev_seqs, database, nprocs, out_dir):
     files = zip_longest(fwd_seqs, rev_seqs)
     if rev_seqs:
         cmd = FASTP_CMD
-        if database is not None:
+        if reference is not None:
             cmd = COMBINED_CMD
     else:
         cmd = FASTP_CMD_SINGLE
-        if database is not None:
+        if reference is not None:
             cmd = COMBINED_CMD_SINGLE
-    command = cmd.format(nprocs=nprocs, database=database, out_dir=out_dir)
+    command = cmd.format(nprocs=nprocs, reference=reference, out_dir=out_dir)
 
     out_files = []
     commands = []
@@ -155,11 +156,11 @@ def fastp_minimap2_to_array(files, out_dir, params, prep_info, url, job_id):
     str, str, str
         The paths of the main_qsub_fp, finish_qsub_fp, out_files_fp
     """
-    database = None
+    reference = None
     if params['reference'] != 'None':
-        database = [join(QC_REFERENCE_DB, f'{db}')
-                    for db in get_dbs_list()
-                    if params['reference'] in db][0]
+        reference = [join(QC_REFERENCE, f'{ref}')
+                    for ref in get_references_list()
+                    if params['reference'] in ref][0]
 
     fwd_seqs = sorted(files['raw_forward_seqs'])
     if 'raw_reverse_seqs' in files:
@@ -177,7 +178,7 @@ def fastp_minimap2_to_array(files, out_dir, params, prep_info, url, job_id):
     # we are not going to use it and simply loop over the ordered
     # fwd_seqs/rev_seqs
     commands, out_files = _generate_commands(
-        fwd_seqs, rev_seqs, database, params['threads'], out_dir)
+        fwd_seqs, rev_seqs, reference, params['threads'], out_dir)
 
     # writing the job array details
     details_name = join(out_dir, 'fastp_minimap2.array-details')
