@@ -22,6 +22,7 @@ MAX_RUNNING = 8
 
 QC_REFERENCE_DB = environ["QC_REFERENCE_DB"]
 
+# Creates the template commands to run in the terminal
 FASTP_BASE = 'fastp -l 100 -i %s -w {nprocs} '
 MINIMAP2_BASE = 'minimap2 -ax sr -t {nprocs} {database} - -a '
 SAMTOOLS_BASE = 'samtools fastq -@ {nprocs} -f '
@@ -45,7 +46,25 @@ def get_dbs_list():
 
 
 def _generate_commands(fwd_seqs, rev_seqs, database, nprocs, out_dir):
-    """Helper function to generate commands and facilite testing"""
+    """Helper function to generate commands and facilite testing
+    
+    Parameters
+    ----------
+    fwd_seqs : str[]
+        A list of file names for fastq.gz files
+    rev_seqs : str[]
+        Another list of file names for fastq.gz files
+    database : str
+        The name of the database to use
+    nprocs : int
+        Number of procs?
+    out_dir : str
+        The directory to output to
+
+    Returns
+    -------
+    idk yet
+    """
     files = zip_longest(fwd_seqs, rev_seqs)
     if rev_seqs:
         cmd = FASTP_CMD

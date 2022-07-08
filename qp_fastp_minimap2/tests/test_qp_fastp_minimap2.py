@@ -24,6 +24,7 @@ from qp_fastp_minimap2.qp_fastp_minimap2 import (
 
 class FastpMinimap2Tests(PluginTestCase):
     def setUp(self):
+        """Connects to the server and sets up the plugin"""
         plugin("https://localhost:21174", 'register', 'ignored')
 
         out_dir = mkdtemp()
@@ -36,6 +37,7 @@ class FastpMinimap2Tests(PluginTestCase):
         self._clean_up_files.append(out_dir)
 
     def tearDown(self):
+        """Deletes all the files/directories created"""
         for fp in self._clean_up_files:
             if exists(fp):
                 if isdir(fp):
@@ -44,10 +46,15 @@ class FastpMinimap2Tests(PluginTestCase):
                     remove(fp)
 
     def test_get_dbs_list(self):
+        """Tests to make sure that the get_dbs_list returns all the databases
+        that aren't human.mmi"""
         dbs = get_dbs_list()
         self.assertCountEqual(dbs, ['artifacts.mmi', 'empty.mmi'])
 
     def test_generate_commands(self):
+        """Makes sure that the _generate_commands function returns the correct commands"""
+
+        # test parameters
         params = {'database': 'artifacts', 'nprocs': 2,
                   'out_dir': '/foo/bar/output'}
 
@@ -55,18 +62,29 @@ class FastpMinimap2Tests(PluginTestCase):
                     'sa1.fastq.gz', 'sd1.fastq.gz']
         rev_seqs = ['sz2.fastq.gz', 'sc2.fastq.gz',
                     'sa2.fastq.gz', 'sd2.fastq.gz']
+
+        # runs generate_commands with test params
+        # testing for artifacts database with rev_seqs
         obs = _generate_commands(fwd_seqs, rev_seqs, params['database'],
                                  params['nprocs'], params['out_dir'])
+        # formats the command to generate "truths"
         cmd = COMBINED_CMD.format(**params)
+
+        # command truths (formats the commands with the fastq sequences)
         ecmds = [cmd % (f, r, f, r)
                  for f, r in zip_longest(fwd_seqs, rev_seqs)]
+        # out_file truths (list of paths to output files in sorted order for fwd_seqs)
         eof = [(f'{params["out_dir"]}/{f}', 'raw_forward_seqs')
                for f in sorted(fwd_seqs)]
+        # sorts rev_seqs and adds them as well to the eof
         for f in sorted(rev_seqs):
             eof.append((f'{params["out_dir"]}/{f}', 'raw_reverse_seqs'))
+        # check for equality
         self.assertCountEqual(obs[0], ecmds)
         self.assertCountEqual(obs[1], eof)
 
+        # modifies test params
+        # testing for no database with rev_seqs
         params['database'] = None
         obs = _generate_commands(fwd_seqs, rev_seqs, params['database'],
                                  params['nprocs'], params['out_dir'])
@@ -76,6 +94,7 @@ class FastpMinimap2Tests(PluginTestCase):
         self.assertCountEqual(obs[0], ecmds)
         self.assertCountEqual(obs[1], list(eof))
 
+        # tests the artifacts database with no rev_seqs
         params['database'] = 'artifacts'
         obs = _generate_commands(fwd_seqs, [], params['database'],
                                  params['nprocs'], params['out_dir'])
@@ -86,6 +105,7 @@ class FastpMinimap2Tests(PluginTestCase):
         self.assertCountEqual(obs[0], ecmds)
         self.assertCountEqual(obs[1], eof)
 
+        # tests no database with no rev_seqs
         params['database'] = None
         obs = _generate_commands(fwd_seqs, [], params['database'],
                                  params['nprocs'], params['out_dir'])
@@ -95,6 +115,8 @@ class FastpMinimap2Tests(PluginTestCase):
         self.assertCountEqual(obs[1], eof)
 
     def test_fastp_minimap2(self):
+        """Makes sure that fastp_minimap2 function returns correct job results"""
+
         # inserting new prep template
         prep_info_dict = {
             'SKB8.640193': {'run_prefix': 'S22205_S104'},
