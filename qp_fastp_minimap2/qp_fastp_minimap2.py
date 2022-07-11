@@ -95,6 +95,7 @@ def _generate_commands(fwd_seqs, rev_seqs, reference, nprocs, out_dir):
                 cmd = command % (fwd_fp, fwd_fp, fname)
             else:
                 cmd = command % (fwd_fp, fname)
+                
         commands.append(cmd)
 
     return commands, out_files
