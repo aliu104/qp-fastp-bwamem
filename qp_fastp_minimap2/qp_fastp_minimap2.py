@@ -95,7 +95,7 @@ def _generate_commands(fwd_seqs, rev_seqs, reference, nprocs, out_dir):
                 cmd = command % (fwd_fp, fwd_fp, fname)
             else:
                 cmd = command % (fwd_fp, fname)
-                
+
         commands.append(cmd)
 
     return commands, out_files
@@ -167,8 +167,8 @@ def fastp_minimap2_to_array(files, out_dir, params, prep_info, url, job_id):
     reference = None
     if params['reference'] != 'None':
         reference = [join(QC_REFERENCE, f'{ref}')
-                      for ref in get_references_list()
-                      if params['reference'] in ref][0]
+                     for ref in get_references_list()
+                     if params['reference'] in ref][0]
 
     fwd_seqs = sorted(files['raw_forward_seqs'])
     if 'raw_reverse_seqs' in files:
