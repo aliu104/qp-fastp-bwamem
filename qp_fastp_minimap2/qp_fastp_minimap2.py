@@ -85,9 +85,16 @@ def _generate_commands(fwd_seqs, rev_seqs, reference, nprocs, out_dir):
         if rev_fp:
             rname = basename(rev_fp)
             out_files.append((f'{out_dir}/{rname}', 'raw_reverse_seqs'))
-            cmd = command % (fwd_fp, rev_fp, fwd_fp, rev_fp, fname, rname)
+            
+            if reference is not None:    
+                cmd = command % (fwd_fp, rev_fp, fwd_fp, rev_fp, fname, rname)
+            else:
+                cmd = command % (fwd_fp, rev_fp, fname, rname)
         else:
-            cmd = command % (fwd_fp, fwd_fp, fname)
+            if reference is not None:
+                cmd = command % (fwd_fp, fwd_fp, fname)
+            else:
+                cmd = command % (fwd_fp, fname)
         commands.append(cmd)
 
     return commands, out_files

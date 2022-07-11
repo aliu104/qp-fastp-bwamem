@@ -63,7 +63,7 @@ class FastpMinimap2Tests(PluginTestCase):
                     'sa2.fastq.gz', 'sd2.fastq.gz']
 
         # runs generate_commands with test params
-        # testing for artifacts database with rev_seqs
+        # testing for genome reference with rev_seqs
         obs = _generate_commands(fwd_seqs, rev_seqs, params['reference'],
                                  params['nprocs'], params['out_dir'])
         # formats the command to generate "truths"
