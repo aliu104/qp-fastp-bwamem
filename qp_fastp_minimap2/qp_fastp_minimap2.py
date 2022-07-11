@@ -37,7 +37,7 @@ COMBINED_CMD = (f'{FASTP_BASE} -I %s --stdout | {BWAMEM_BASE} %s %s | '
 COMBINED_CMD_SINGLE = (f'{FASTP_BASE} --stdout | {BWAMEM_BASE} %s | '
                        f'{SAMTOOLS_BASE} 4 -0 '
                        '{out_dir}/%s')
-# TODO: change the formatting properly to account for the added %s in bwa mem commands
+
 
 def get_references_list():
     folder = QC_REFERENCE
@@ -48,7 +48,7 @@ def get_references_list():
 
 def _generate_commands(fwd_seqs, rev_seqs, reference, nprocs, out_dir):
     """Helper function to generate commands and facilite testing
-    
+
     Parameters
     ----------
     fwd_seqs : str[]
@@ -85,8 +85,8 @@ def _generate_commands(fwd_seqs, rev_seqs, reference, nprocs, out_dir):
         if rev_fp:
             rname = basename(rev_fp)
             out_files.append((f'{out_dir}/{rname}', 'raw_reverse_seqs'))
-            
-            if reference is not None:    
+
+            if reference is not None:
                 cmd = command % (fwd_fp, rev_fp, fwd_fp, rev_fp, fname, rname)
             else:
                 cmd = command % (fwd_fp, rev_fp, fname, rname)
@@ -167,8 +167,8 @@ def fastp_minimap2_to_array(files, out_dir, params, prep_info, url, job_id):
     reference = None
     if params['reference'] != 'None':
         reference = [join(QC_REFERENCE, f'{ref}')
-                    for ref in get_references_list()
-                    if params['reference'] in ref][0]
+                      for ref in get_references_list()
+                      if params['reference'] in ref][0]
 
     fwd_seqs = sorted(files['raw_forward_seqs'])
     if 'raw_reverse_seqs' in files:

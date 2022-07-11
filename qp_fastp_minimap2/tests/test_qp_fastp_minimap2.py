@@ -18,8 +18,9 @@ from functools import partial
 from qp_fastp_minimap2 import plugin
 from qp_fastp_minimap2.utils import plugin_details
 from qp_fastp_minimap2.qp_fastp_minimap2 import (
-    get_references_list, _generate_commands, fastp_minimap2_to_array, QC_REFERENCE,
-    FASTP_CMD, COMBINED_CMD, FASTP_CMD_SINGLE, COMBINED_CMD_SINGLE)
+    get_references_list, _generate_commands, fastp_minimap2_to_array,
+    QC_REFERENCE, FASTP_CMD, COMBINED_CMD, FASTP_CMD_SINGLE,
+    COMBINED_CMD_SINGLE)
 
 
 class FastpMinimap2Tests(PluginTestCase):
@@ -46,12 +47,12 @@ class FastpMinimap2Tests(PluginTestCase):
                     remove(fp)
 
     def test_get_references_list(self):
-        """Tests to make sure that the get_references_list returns just genome.fasta"""
+        """Tests that get_references_list returns just genome.fasta"""
         refs = get_references_list()
         self.assertCountEqual(refs, ['genome.fasta'])
 
     def test_generate_commands(self):
-        """Makes sure that the _generate_commands function returns the correct commands"""
+        """Tests that _generate_commands function returns correct commands"""
 
         # test parameters
         params = {'reference': 'genome', 'nprocs': 2,
@@ -72,7 +73,7 @@ class FastpMinimap2Tests(PluginTestCase):
         # command truths (formats the commands with the fastq sequences)
         ecmds = [cmd % (f, r, f, r, f, r)
                  for f, r in zip_longest(fwd_seqs, rev_seqs)]
-        # out_file truths (list of paths to output files in sorted order for fwd_seqs)
+        # out_file truths (list of paths to output files in sorted order)
         eof = [(f'{params["out_dir"]}/{f}', 'raw_forward_seqs')
                for f in sorted(fwd_seqs)]
         # sorts rev_seqs and adds them as well to the eof
@@ -114,7 +115,7 @@ class FastpMinimap2Tests(PluginTestCase):
         self.assertCountEqual(obs[1], eof)
 
     def test_fastp_minimap2(self):
-        """Makes sure that fastp_minimap2 function returns correct job results"""
+        """Tests that fastp_minimap2 function returns correct job results"""
 
         # inserting new prep template
         prep_info_dict = {
@@ -255,7 +256,7 @@ class FastpMinimap2Tests(PluginTestCase):
         exp_commands = [
             f'fastp -l 100 -i {apath}/S22205_S104_L001_R1_001.fastq.gz -w 2  '
             f'-I {apath}/S22205_S104_L001_R2_001.fastq.gz --stdout | '
-            f'bwa mem -t 2 {QC_REFERENCE}genome.fasta '
+            f'bwa mem -t 2 {QC_REFERENCE}genome.fasta  '
             f'{apath}/S22205_S104_L001_R1_001.fastq.gz '
             f'{apath}/S22205_S104_L001_R2_001.fastq.gz | '
             'samtools fastq -@ 2 -f  12 -F 256 -1 '
@@ -263,7 +264,7 @@ class FastpMinimap2Tests(PluginTestCase):
             f'{out_dir}/S22205_S104_L001_R2_001.fastq.gz\n',
             f'fastp -l 100 -i {apath}/S22282_S102_L001_R1_001.fastq.gz -w 2  '
             f'-I {apath}/S22282_S102_L001_R2_001.fastq.gz --stdout | '
-            f'bwa mem -t 2 {QC_REFERENCE}genome.fasta '
+            f'bwa mem -t 2 {QC_REFERENCE}genome.fasta  '
             f'{apath}/S22282_S102_L001_R1_001.fastq.gz '
             f'{apath}/S22282_S102_L001_R2_001.fastq.gz | '
             'samtools fastq -@ 2 -f  12 -F 256 -1 '
@@ -402,12 +403,12 @@ class FastpMinimap2Tests(PluginTestCase):
         apath = dirname(artifact_info['files']['raw_forward_seqs'][0])
         exp_commands = [
             f'fastp -l 100 -i {apath}/S22205_S104_L001_R1_001.fastq.gz -w 2  '
-            f'--stdout | bwa mem -t 2 {QC_REFERENCE}genome.fasta '
+            f'--stdout | bwa mem -t 2 {QC_REFERENCE}genome.fasta  '
             f'{apath}/S22205_S104_L001_R1_001.fastq.gz | '
             'samtools fastq -@ 2 -f  4 -0 '
             f'{out_dir}/S22205_S104_L001_R1_001.fastq.gz\n',
             f'fastp -l 100 -i {apath}/S22282_S102_L001_R1_001.fastq.gz -w 2  '
-            f'--stdout | bwa mem -t 2 {QC_REFERENCE}genome.fasta '
+            f'--stdout | bwa mem -t 2 {QC_REFERENCE}genome.fasta  '
             f'{apath}/S22282_S102_L001_R1_001.fastq.gz | '
             'samtools fastq -@ 2 -f  4 -0 '
             f'{out_dir}/S22282_S102_L001_R1_001.fastq.gz']
