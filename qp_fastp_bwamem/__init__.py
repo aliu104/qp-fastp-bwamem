@@ -7,7 +7,7 @@
 # -----------------------------------------------------------------------------
 
 from qiita_client import QiitaPlugin, QiitaCommand
-from .qp_fastp_minimap2 import get_references_list, fastp_minimap2
+from .qp_fastp_bwamem import get_references_list, fastp_bwamem
 from .utils import plugin_details
 from os.path import splitext
 
@@ -36,8 +36,8 @@ for db in dbs_without_extension:
     name = f'auto-detect adapters and {db} + phix filtering'
     default_params[name] = {'reference': db, 'threads': THREADS}
 
-fastp_minimap2_cmd = QiitaCommand(
+fastp_bwamem_cmd = QiitaCommand(
     'Adapter and host filtering', "Sequence adapter and host filtering",
-    fastp_minimap2, req_params, opt_params, outputs, default_params)
+    fastp_bwamem, req_params, opt_params, outputs, default_params)
 
-plugin.register_command(fastp_minimap2_cmd)
+plugin.register_command(fastp_bwamem_cmd)

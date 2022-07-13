@@ -101,8 +101,8 @@ def _generate_commands(fwd_seqs, rev_seqs, reference, nprocs, out_dir):
     return commands, out_files
 
 
-def fastp_minimap2(qclient, job_id, parameters, out_dir):
-    """Run fastp and minimap2 with the given parameters
+def fastp_bwamem(qclient, job_id, parameters, out_dir):
+    """Run fastp and bwamem with the given parameters
 
     Parameters
     ----------
@@ -122,7 +122,7 @@ def fastp_minimap2(qclient, job_id, parameters, out_dir):
     """
 
     qclient.update_job_step(
-        job_id, "Step 3 of 4: Finishing fastp and minimap2")
+        job_id, "Step 3 of 4: Finishing fastp and bwamem")
 
     ainfo = []
     # Generates 2 artifacts: one for the ribosomal
@@ -141,8 +141,8 @@ def fastp_minimap2(qclient, job_id, parameters, out_dir):
     return True, ainfo, ""
 
 
-def fastp_minimap2_to_array(files, out_dir, params, prep_info, url, job_id):
-    """Creates qsub files for submission of per sample fastp and minimap2
+def fastp_bwamem_to_array(files, out_dir, params, prep_info, url, job_id):
+    """Creates qsub files for submission of per sample fastp and bwamem
 
     Parameters
     ----------
@@ -151,7 +151,7 @@ def fastp_minimap2_to_array(files, out_dir, params, prep_info, url, job_id):
     out_dir : str
         The output directory
     params : dict
-        The parameter values to run fastp/minimap2
+        The parameter values to run fastp/bwamem
     prep_info : str
         The path to prep_info
     url : str
@@ -189,7 +189,7 @@ def fastp_minimap2_to_array(files, out_dir, params, prep_info, url, job_id):
         fwd_seqs, rev_seqs, reference, params['threads'], out_dir)
 
     # writing the job array details
-    details_name = join(out_dir, 'fastp_minimap2.array-details')
+    details_name = join(out_dir, 'fastp_bwamem.array-details')
     with open(details_name, 'w') as details:
         details.write('\n'.join(commands))
     n_jobs = len(commands)
@@ -239,7 +239,7 @@ def fastp_minimap2_to_array(files, out_dir, params, prep_info, url, job_id):
              'date',  # start time
              'hostname',  # executing system
              'echo $PBS_JOBID',
-             f'finish_qp_fastp_minimap2 {url} {job_id} {out_dir}\n'
+             f'finish_qp_fastp_bwamem {url} {job_id} {out_dir}\n'
              "date"]
     finish_qsub_fp = join(out_dir, f'{job_id}.finish.qsub')
     with open(finish_qsub_fp, 'w') as out:
