@@ -89,8 +89,8 @@ jobs:
           export QC_REFERENCE=$PWD/qp_fastp_bwamem/support_files/references/
           for file in $(ls $QC_REFERENCE/*.gz); do gunzip $file; done
 
-          echo "break 1d"
           samtools_version=`samtools --version`
+          echo "break 1d"
           bwamem_version=`bwa 2>&1 | grep "^Version:" | cut -d' ' -f2`
           echo "break 2d"
           fastp_version=$(fastp --version 2>&1)
