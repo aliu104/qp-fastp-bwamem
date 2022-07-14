@@ -372,7 +372,7 @@ class FastpBwamemTests(PluginTestCase):
             'date\n']
         self.assertEqual(main_qsub, exp_main_qsub)
 
-        exp_finish_qsub = [i am
+        exp_finish_qsub = [
             '#!/bin/bash\n',
             '#PBS -M qiita.help@gmail.com\n',
             f'#PBS -N finish-{job_id}\n',
