@@ -91,9 +91,7 @@ jobs:
 
           samtools_version=`samtools --version`
           echo "break 1d"
-          bwa 2>&1 | grep "^Version:" | cut -d' ' -f2
-          echo "break 1e"
-          bwamem_version=`bwa 2>&1 | grep "^Version:" | cut -d' ' -f2`
+          bwamem_version=`(bwa 2>&1 | grep "^Version:" | cut -d' ' -f2) || true`
           echo "break 2d"
           fastp_version=$(fastp --version 2>&1)
           if [[ $samtools_version != *"1.11"* ]]; then echo "wrong samtools version", $samtools_version; exit 1; fi
