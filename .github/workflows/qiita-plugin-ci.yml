@@ -96,8 +96,10 @@ jobs:
           if [[ $bwamem_version != *"7.17"* ]]; then echo "wrong bwamem version", $bwamem_version; exit 1; fi
           if [[ $fastp_version != *"23.2"* ]]; then echo "wrong fastp version", $fastp_version; exit 1; fi
 
+          echo "break 1"
           configure_qp_fastp_bwamem --env-script "source ~/.bash_profile; conda activate qp-fastp-bwamem; export QC_REFERENCE=${PWD}/qp_fastp_bwamem/support_files/references/; export ENVIRONMENT='source ~/.bash_profile; source activate qp-fastp-bwamem; export QC_REFERENCE=${PWD}/qp_fastp_bwamem/support_files/references/'" --server-cert $QIITA_SERVER_CERT
-
+          echo "break 2"
+          
           echo "Available Qiita plugins"
           ls ~/.qiita_plugins/
 
