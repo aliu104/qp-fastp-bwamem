@@ -91,7 +91,7 @@ jobs:
 
           echo "break 1c"
           samtools_version=`samtools --version`
-          bwamem_version=$(bwa 2>&1)
+          bwamem_version=$(fastp --version 2>&1)
           echo "break 2c"
           fastp_version=$(fastp --version 2>&1)
           if [[ $samtools_version != *"1.11"* ]]; then echo "wrong samtools version", $samtools_version; exit 1; fi
